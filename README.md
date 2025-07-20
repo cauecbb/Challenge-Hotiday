@@ -24,7 +24,7 @@ Django REST API for managing hierarchical node structures using the Nested Set M
 ## Installation
 
 ### Prerequisites
-- Python 3.8+
+- Python 3.12+
 - pip
 
 ### Setup
