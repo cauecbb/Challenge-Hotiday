@@ -187,3 +187,67 @@ class SearchChildrenViewTest(TestCase):
         data = json.loads(response.content)
         
         self.assertEqual(len(data['data']['children']), 0)
+
+
+class CreateNodeViewTest(TestCase):
+    """Test cases for create_node view"""
+    
+    def setUp(self):
+        # Set up test data
+        self.factory = RequestFactory()
+        
+        # Create a parent node
+        self.parent = NodeTree.objects.create(
+            lft=1, rgt=2, children_count=0
+        )
+        NodeTreeNames.objects.create(
+            nodeTree=self.parent, language='en', nodeName='Parent'
+        )
+    
+    def test_create_root_node_success(self):
+        # Test successful root node creation
+        from .views import create_node
+        
+        data = {
+            'names': {
+                'en': 'New Root',
+                'it': 'Nuova Radice'
+            }
+        }
+        
+        request = self.factory.post(
+            '/api/nodes/',
+            json.dumps(data),
+            content_type='application/json'
+        )
+        response = create_node(request)
+        
+        self.assertEqual(response.status_code, 201)
+        response_data = json.loads(response.content)
+        
+        self.assertEqual(response_data['status'], 'success')
+        self.assertEqual(response_data['data']['names'][0]['name'], 'New Root')
+    
+    def test_create_child_node_success(self):
+        # Test successful child node creation
+        from .views import create_node
+        
+        data = {
+            'parent_id': self.parent.id,
+            'names': {
+                'en': 'New Child'
+            }
+        }
+        
+        request = self.factory.post(
+            '/api/nodes/',
+            json.dumps(data),
+            content_type='application/json'
+        )
+        response = create_node(request)
+        
+        self.assertEqual(response.status_code, 201)
+        response_data = json.loads(response.content)
+        
+        self.assertEqual(response_data['status'], 'success')
+        self.assertEqual(response_data['data']['names'][0]['name'], 'New Child')
