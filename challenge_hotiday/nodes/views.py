@@ -97,13 +97,56 @@ def list_all_nodes(request):
 def get_node(request, node_id):
     """
     Get a specific node by id.
+    
+    parameters:
+    - language: Language code for node names (default: 'en')
     """
-    # to do - implement single node retrieval
-    return JsonResponse({
-        'status': 'success',
-        'message': f'Get node {node_id} endpoint - to be implemented',
-        'data': {'node_id': node_id}
-    })
+    try:
+        # Get language parameter
+        language = request.GET.get('language', 'en')
+        
+        # Get the node
+        try:
+            node = NodeTree.objects.get(id=node_id)
+        except NodeTree.DoesNotExist:
+            return JsonResponse({
+                'status': 'error',
+                'message': f'Node with ID {node_id} not found'
+            }, status=404)
+        
+        # Get node name 
+        try:
+            name_obj = node.names.get(language=language)
+            node_name = name_obj.nodeName
+        except NodeTreeNames.DoesNotExist:
+            # fallback to english
+            try:
+                name_obj = node.names.get(language='en')
+                node_name = name_obj.nodeName
+            except NodeTreeNames.DoesNotExist:
+                node_name = f"Node {node.id}"
+        
+        # Prepare response data for single node
+        node_data = {
+            'id': node.id,
+            'name': node_name,
+            'lft': node.lft,
+            'rgt': node.rgt,
+            'children_count': node.children_count,
+            'is_leaf': node.is_leaf,
+            'depth': node.depth
+        }
+        
+        return JsonResponse({
+            'status': 'success',
+            'data': node_data
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Internal server error'
+        }, status=500)
 
 
 @require_http_methods(["GET"])
