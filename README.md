@@ -1,46 +1,46 @@
-# Challenge Hotiday - API de Estrutura Hierárquica
+# Challenge Hotiday - Hierarchical Structure API
 
-## 📋 Descrição
+## Description
 
-Este projeto implementa uma API REST em Django para gerenciar uma estrutura hierárquica de nós usando o modelo **Nested Set**. A API suporta operações CRUD básicas e internacionalização (i18n) para nomes dos nós.
+Django REST API for managing hierarchical node structures using the Nested Set Model. Supports CRUD operations and internationalization (i18n) for node names.
 
-## 🚀 Funcionalidades
+## Features
 
-- ✅ **Estrutura hierárquica** usando Nested Set Model
-- ✅ **API REST** com endpoints para listar, buscar e criar nós
-- ✅ **Suporte multilíngue** (inglês e italiano)
-- ✅ **Paginação** nas listagens
-- ✅ **Busca de filhos** diretos
-- ✅ **Testes unitários** completos
-- ✅ **Dados iniciais** pré-carregados
+- Hierarchical structure using Nested Set Model
+- REST API with endpoints for listing, searching and creating nodes
+- Multilingual support (English and Italian)
+- Pagination for listings
+- Direct children search
+- Unit tests
+- Pre-loaded initial data
 
-## 🛠️ Tecnologias
+## Technologies
 
-- **Django 5.2.4** - Framework web
-- **SQLite** - Banco de dados
-- **Nested Set Model** - Estrutura hierárquica
-- **Django REST** - API endpoints
+- Django 5.2.4
+- SQLite
+- Nested Set Model
+- Django REST
 
-## 📦 Instalação
+## Installation
 
-### Pré-requisitos
+### Prerequisites
 - Python 3.8+
 - pip
 
-### Passos
+### Setup
 
-1. **Clone o repositório**
+1. **Clone the repository**
 ```bash
 git clone <repository-url>
 cd Challenge-Hotiday/challenge_hotiday
 ```
 
-2. **Crie um ambiente virtual**
+2. **Create virtual environment**
 ```bash
 python -m venv venv
 ```
 
-3. **Ative o ambiente virtual**
+3. **Activate virtual environment**
 ```bash
 # Windows
 venv\Scripts\activate
@@ -49,29 +49,29 @@ venv\Scripts\activate
 source venv/bin/activate
 ```
 
-4. **Instale as dependências**
+4. **Install dependencies**
 ```bash
 pip install -r requirements.txt
 ```
 
-5. **Execute as migrações**
+5. **Run migrations**
 ```bash
 python manage.py migrate
 ```
 
-6. **Carregue os dados iniciais**
+6. **Load initial data**
 ```bash
 python manage.py load_initial_data
 ```
 
-7. **Execute o servidor**
+7. **Start server**
 ```bash
 python manage.py runserver
 ```
 
-A API estará disponível em: `http://localhost:8000`
+API will be available at: `http://localhost:8000`
 
-## 📚 Documentação da API
+## API Documentation
 
 ### Base URL
 ```
@@ -80,20 +80,20 @@ http://localhost:8000/api/
 
 ### Endpoints
 
-#### 1. Listar Todos os Nós
+#### 1. List All Nodes
 **GET** `/api/nodes/`
 
-**Parâmetros:**
-- `page_num` (opcional): Número da página (padrão: 0)
-- `page_size` (opcional): Itens por página (padrão: 5, máximo: 1000)
-- `language` (opcional): Código do idioma (padrão: 'en')
+**Parameters:**
+- `page_num` (optional): Page number (default: 0)
+- `page_size` (optional): Items per page (default: 5, max: 1000)
+- `language` (optional): Language code (default: 'en')
 
-**Exemplo:**
+**Example:**
 ```bash
 curl "http://localhost:8000/api/nodes/?page_size=3&language=it"
 ```
 
-**Resposta:**
+**Response:**
 ```json
 {
   "status": "success",
@@ -120,15 +120,15 @@ curl "http://localhost:8000/api/nodes/?page_size=3&language=it"
 }
 ```
 
-#### 2. Buscar Nó Específico
+#### 2. Get Specific Node
 **GET** `/api/nodes/{id}/`
 
-**Exemplo:**
+**Example:**
 ```bash
 curl "http://localhost:8000/api/nodes/1/"
 ```
 
-**Resposta:**
+**Response:**
 ```json
 {
   "status": "success",
@@ -144,18 +144,18 @@ curl "http://localhost:8000/api/nodes/1/"
 }
 ```
 
-#### 3. Buscar Filhos de um Nó
+#### 3. Search Node Children
 **GET** `/api/nodes/{id}/children/`
 
-**Parâmetros:**
-- `language` (opcional): Código do idioma (padrão: 'en')
+**Parameters:**
+- `language` (optional): Language code (default: 'en')
 
-**Exemplo:**
+**Example:**
 ```bash
 curl "http://localhost:8000/api/nodes/1/children/?language=it"
 ```
 
-**Resposta:**
+**Response:**
 ```json
 {
   "status": "success",
@@ -176,7 +176,7 @@ curl "http://localhost:8000/api/nodes/1/children/?language=it"
 }
 ```
 
-#### 4. Criar Novo Nó
+#### 4. Create New Node
 **POST** `/api/nodes/`
 
 **Body:**
@@ -190,7 +190,7 @@ curl "http://localhost:8000/api/nodes/1/children/?language=it"
 }
 ```
 
-**Exemplo:**
+**Example:**
 ```bash
 curl -X POST "http://localhost:8000/api/nodes/" \
   -H "Content-Type: application/json" \
@@ -203,7 +203,7 @@ curl -X POST "http://localhost:8000/api/nodes/" \
   }'
 ```
 
-**Resposta:**
+**Response:**
 ```json
 {
   "status": "success",
@@ -229,93 +229,85 @@ curl -X POST "http://localhost:8000/api/nodes/" \
 }
 ```
 
-## 🧪 Testes
+## Testing
 
-### Executar Todos os Testes
+### Run All Tests
 ```bash
 python manage.py test nodes.tests -v 2
 ```
 
-### Executar Testes Específicos
+### Run Specific Tests
 ```bash
-# Testes de modelo
+# Model tests
 python manage.py test nodes.tests.NodeTreeModelTest -v 2
 
-# Testes de views
+# View tests
 python manage.py test nodes.tests.ListAllNodesViewTest -v 2
 python manage.py test nodes.tests.GetNodeViewTest -v 2
 python manage.py test nodes.tests.SearchChildrenViewTest -v 2
 python manage.py test nodes.tests.CreateNodeViewTest -v 2
 ```
 
-## 📊 Dados Iniciais
+## Initial Data
 
-O projeto vem com dados iniciais pré-carregados incluindo:
+The project comes with pre-loaded data including:
 
-- **Company/Azienda** (nó raiz)
-- **Marketing**
-- **Helpdesk/Supporto tecnico**
-- **Managers**
-- **Customer Account/Assistenza Cliente**
-- **Accounting/Amministrazione**
-- **Sales/Supporto Vendite**
-- **Italy/Italia**
-- **Europe/Europa**
-- **Developers/Sviluppatori**
-- **North America/Nord America**
-- **Quality Assurance/Controllo Qualità**
+- Company/Azienda (root node)
+- Marketing
+- Helpdesk/Supporto tecnico
+- Managers
+- Customer Account/Assistenza Cliente
+- Accounting/Amministrazione
+- Sales/Supporto Vendite
+- Italy/Italia
+- Europe/Europa
+- Developers/Sviluppatori
+- North America/Nord America
+- Quality Assurance/Controllo Qualità
 
-## 🏗️ Estrutura do Projeto
+## Project Structure
 
 ```
 challenge_hotiday/
-├── challenge_hotiday/          # Configurações do Django
-├── nodes/                      # App principal
-│   ├── models.py              # Modelos NodeTree e NodeTreeNames
-│   ├── views.py               # Views da API
-│   ├── urls.py                # URLs da API
-│   ├── tests.py               # Testes unitários
-│   └── management/            # Comandos personalizados
+├── challenge_hotiday/          # Django settings
+├── nodes/                      # Main app
+│   ├── models.py              # NodeTree and NodeTreeNames models
+│   ├── views.py               # API views
+│   ├── urls.py                # API URLs
+│   ├── tests.py               # Unit tests
+│   └── management/            # Custom commands
 │       └── commands/
 │           └── load_initial_data.py
-├── manage.py                  # Script de gerenciamento
-├── requirements.txt           # Dependências
-└── .gitignore                # Arquivos ignorados pelo Git
+├── manage.py                  # Management script
+├── requirements.txt           # Dependencies
+└── .gitignore                # Git ignore file
 ```
 
-## 🔧 Comandos Úteis
+## Useful Commands
 
-### Carregar Dados Iniciais
+### Load Initial Data
 ```bash
 python manage.py load_initial_data
 ```
 
-### Criar Superusuário
+### Create Superuser
 ```bash
 python manage.py createsuperuser
 ```
 
-### Shell do Django
+### Django Shell
 ```bash
 python manage.py shell
 ```
 
-## 📝 Notas Técnicas
+## Technical Notes
 
-- **Nested Set Model**: Implementado para eficiência em consultas hierárquicas
-- **Internacionalização**: Suporte a múltiplos idiomas com fallback para inglês
-- **Paginação**: Implementada para melhor performance em grandes datasets
-- **Validação**: Validação de dados de entrada e tratamento de erros
-- **Transações**: Uso de transações para garantir consistência dos dados
+- **Nested Set Model**: Implemented for efficient hierarchical queries
+- **Internationalization**: Multi-language support with English fallback
+- **Pagination**: Implemented for better performance
+- **Validation**: Input validation and error handling
+- **Transactions**: Database transactions for data consistency
 
-## 🤝 Contribuição
+## License
 
-1. Fork o projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
-
-## 📄 Licença
-
-Este projeto foi desenvolvido como parte de um teste técnico.
+This project was developed as part of a technical test.
