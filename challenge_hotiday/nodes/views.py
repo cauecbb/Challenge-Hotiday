@@ -18,21 +18,9 @@ def list_all_nodes(request):
     - language: Language code for node names (default: 'en')
     """
     try:
-        page_num = int(request.GET.get('page', 0))
+        page_num = int(request.GET.get('page_num', 0))
         page_size = min(int(request.GET.get('page_size', 5)), 1000)
         language = request.GET.get('language', 'en')
-        
-        # if page < 1:
-        #     return JsonResponse({
-        #         'status': 'error',
-        #         'message': 'Page number must be greater than 0'
-        #     }, status=400)
-        
-        # if page_size < 1:
-        #     return JsonResponse({
-        #         'status': 'error',
-        #         'message': 'Page size must be greater than 0'
-        #     }, status=400)
         
         # Get all nodes in the specified language
         nodes = NodeTree.objects.select_related().prefetch_related('names')
@@ -152,14 +140,103 @@ def get_node(request, node_id):
 @require_http_methods(["GET"])
 def search_children(request, node_id):
     """
-    Search for children of a specific node.
+    Search for children of a specific node
+    
+    parameters:
+    - page: Page number (default: 0)
+    - page_size: Items per page (default: 5, max: 1000)
+    - language: Language code for node names (default: 'en')
     """
-    # to do - implement children search logic
-    return JsonResponse({
-        'status': 'success',
-        'message': f'Search children of node {node_id} endpoint - to be implemented',
-        'data': {'parent_id': node_id, 'children': []}
-    })
+    try:
+        # Get parameters
+        page_num = int(request.GET.get('page_num', 0))
+        page_size = min(int(request.GET.get('page_size', 5)), 1000)
+        language = request.GET.get('language', 'en')
+
+        # Get the parent node
+        try:
+            parent_node = NodeTree.objects.get(id=node_id)
+        except NodeTree.DoesNotExist:
+            return JsonResponse({
+                'status': 'error',
+                'message': f'Parent node with ID {node_id} not found'
+            }, status=404)
+        
+        # Get direct children nodes using Nested Set Model
+        children = NodeTree.objects.filter(
+            lft__gt=parent_node.lft,
+            rgt__lt=parent_node.rgt
+        ).prefetch_related('names')
+        
+        # Filter to get only direct children (not descendants)
+        direct_children = []
+        for child in children:
+            # Check if this is a direct child by verifying no other node is between parent and child
+            is_direct_child = True
+            for other_child in children:
+                if other_child.id != child.id:
+                    if (other_child.lft < child.lft and other_child.rgt > child.rgt):
+                        is_direct_child = False
+                        break
+            if is_direct_child:
+                direct_children.append(child)
+        
+        # Prepare children data
+        children_data = []
+        for child in direct_children:
+            # Get child name in specified language
+            try:
+                name_obj = child.names.get(language=language)
+                child_name = name_obj.nodeName
+            except NodeTreeNames.DoesNotExist:
+                # fallback to english
+                try:
+                    name_obj = child.names.get(language='en')
+                    child_name = name_obj.nodeName
+                except NodeTreeNames.DoesNotExist:
+                    child_name = f"Node {child.id}"
+            
+            children_data.append({
+                'id': child.id,
+                'name': child_name,
+                'lft': child.lft,
+                'rgt': child.rgt,
+                'children_count': child.children_count,
+                'is_leaf': child.is_leaf,
+                'depth': child.depth
+            })
+        
+        # pagination
+        paginator = Paginator(children_data, page_size)
+        page_obj = paginator.get_page(page_num)
+        
+        return JsonResponse({
+            'status': 'success',
+            'data': {
+                'parent_id': node_id,
+                'parent_name': parent_node.names.get(language=language).nodeName if parent_node.names.filter(language=language).exists() else parent_node.names.get(language='en').nodeName if parent_node.names.filter(language='en').exists() else f"Node {parent_node.id}",
+                'children': list(page_obj),
+                'pagination': {
+                    'current_page': page_obj.number,
+                    'total_pages': paginator.num_pages,
+                    'total_items': paginator.count,
+                    'has_next': page_obj.has_next(),
+                    'has_previous': page_obj.has_previous(),
+                    'page_size': page_size
+                }
+            }
+        })
+        
+    except ValueError as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Invalid parameter value'
+        }, status=400)
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Internal server error'
+        }, status=500)
 
 
 @csrf_exempt
