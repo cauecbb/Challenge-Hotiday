@@ -7,7 +7,7 @@ class NodeTreeModelTest(TestCase):
     """Test cases for NodeTree model"""
     
     def setUp(self):
-        """Set up test data"""
+        # Set up test data
         self.root_node = NodeTree.objects.create(
             lft=1, rgt=6, children_count=2
         )
@@ -23,14 +23,14 @@ class NodeTreeModelTest(TestCase):
         )
     
     def test_node_properties(self):
-        """Test node properties"""
+        # Test node properties
         self.assertFalse(self.root_node.is_leaf)
         self.assertTrue(self.child_node.is_leaf)
         self.assertEqual(self.root_node.depth, 2)
         self.assertEqual(self.child_node.depth, 0)
     
     def test_get_node_name(self):
-        """Test getting node name"""
+        # Test getting node name
         name = NodeTreeNames.get_node_name(self.root_node.id, 'en')
         self.assertEqual(name, 'Root Node')
         
@@ -47,7 +47,7 @@ class ListAllNodesViewTest(TestCase):
     """Test cases for list_all_nodes view"""
     
     def setUp(self):
-        """Set up test data"""
+        # Set up test data
         self.factory = RequestFactory()
         
         # Create test nodes
@@ -67,7 +67,7 @@ class ListAllNodesViewTest(TestCase):
         )
     
     def test_list_all_nodes_success(self):
-        """Test successful listing of all nodes"""
+        # Test successful listing of all nodes
         from .views import list_all_nodes
         
         request = self.factory.get('/api/nodes/')
@@ -80,7 +80,7 @@ class ListAllNodesViewTest(TestCase):
         self.assertEqual(len(data['data']['nodes']), 2)
     
     def test_list_all_nodes_with_pagination(self):
-        """Test pagination functionality"""
+        # Test pagination functionality
         from .views import list_all_nodes
         
         request = self.factory.get('/api/nodes/', {'page_size': '1'})
@@ -91,3 +91,44 @@ class ListAllNodesViewTest(TestCase):
         
         self.assertEqual(len(data['data']['nodes']), 1)
         self.assertEqual(data['data']['pagination']['total_pages'], 2)
+
+
+class GetNodeViewTest(TestCase):
+    """Test cases for get_node view"""
+
+    def setUp(self):
+        #  Set up test data
+        self.factory = RequestFactory()
+        
+
+        self.node = NodeTree.objects.create(
+            lft=1, rgt=2, children_count=0
+        )
+        NodeTreeNames.objects.create(
+            nodeTree=self.node, language='en', nodeName='Test Node'
+        )
+    
+    def test_get_node_success(self):
+        # Test successful node retrieval
+        from .views import get_node
+        
+        request = self.factory.get(f'/api/nodes/{self.node.id}/')
+        response = get_node(request, self.node.id)
+        
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        
+        self.assertEqual(data['status'], 'success')
+        self.assertEqual(data['data']['id'], self.node.id)
+        self.assertEqual(data['data']['name'], 'Test Node')
+    
+    def test_get_node_not_found(self):
+        # Test node not found
+        from .views import get_node
+        
+        request = self.factory.get('/api/nodes/999/')
+        response = get_node(request, 999)
+        
+        self.assertEqual(response.status_code, 404)
+        data = json.loads(response.content)
+        self.assertEqual(data['status'], 'error')
