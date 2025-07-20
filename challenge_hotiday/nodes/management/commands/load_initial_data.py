@@ -15,7 +15,7 @@ class Command(BaseCommand):
         # Create hierarchical structure based on the test data
         # Root - Company/Azienda
         company = NodeTree.objects.create(
-            lft=1, rgt=26, children_count=3
+            lft=1, rgt=26, children_count=11
         )
         NodeTreeNames.objects.create(
             nodeTree=company, language='en', nodeName='Company'
