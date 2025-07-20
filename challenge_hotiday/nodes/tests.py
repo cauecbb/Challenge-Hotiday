@@ -132,3 +132,58 @@ class GetNodeViewTest(TestCase):
         self.assertEqual(response.status_code, 404)
         data = json.loads(response.content)
         self.assertEqual(data['status'], 'error')
+
+
+class SearchChildrenViewTest(TestCase):
+    """Test cases for search_children view"""
+    
+    def setUp(self):
+        # Set up test data
+        self.factory = RequestFactory()
+        
+        # Create hierarchical structure
+        self.parent = NodeTree.objects.create(
+            lft=1, rgt=6, children_count=2
+        )
+        self.child1 = NodeTree.objects.create(
+            lft=2, rgt=3, children_count=0
+        )
+        self.child2 = NodeTree.objects.create(
+            lft=4, rgt=5, children_count=0
+        )
+        
+        # Create names
+        NodeTreeNames.objects.create(
+            nodeTree=self.parent, language='en', nodeName='Parent'
+        )
+        NodeTreeNames.objects.create(
+            nodeTree=self.child1, language='en', nodeName='Child 1'
+        )
+        NodeTreeNames.objects.create(
+            nodeTree=self.child2, language='en', nodeName='Child 2'
+        )
+    
+    def test_search_children_success(self):
+        # Test successful children search
+        from .views import search_children
+        
+        request = self.factory.get(f'/api/nodes/{self.parent.id}/children/')
+        response = search_children(request, self.parent.id)
+        
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        
+        self.assertEqual(data['status'], 'success')
+        self.assertEqual(len(data['data']['children']), 2)
+    
+    def test_search_children_no_children(self):
+        # Test node with no children
+        from .views import search_children
+        
+        request = self.factory.get(f'/api/nodes/{self.child1.id}/children/')
+        response = search_children(request, self.child1.id)
+        
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        
+        self.assertEqual(len(data['data']['children']), 0)
