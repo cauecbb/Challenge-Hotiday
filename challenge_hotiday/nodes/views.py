@@ -244,10 +244,124 @@ def search_children(request, node_id):
 def create_node(request):
     """
     Create a new node in the tree.
+    
+    Request body:
+    {
+        "parent_id": 1,  // Optional: ID of parent node (null for root)
+        "names": {
+            "en": "Node Name in English",
+            "it": "Nome del Nodo in Italiano"
+        }
+    }
     """
-    # to do - implement node creation logic
-    return JsonResponse({
-        'status': 'success',
-        'message': 'Create node endpoint - to be implemented',
-        'data': {}
-    })
+    try:
+        # Parse JSON request body
+        try:
+            data = json.loads(request.body.decode('utf-8'))
+        except json.JSONDecodeError:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Invalid JSON format'
+            }, status=400)
+        
+        # Validate required fields
+        if 'names' not in data:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Names field is required'
+            }, status=400)
+        
+        if not isinstance(data['names'], dict) or not data['names']:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Names must be a non-empty object'
+            }, status=400)
+        
+        # Validate at least one language is provided
+        if not any(data['names'].values()):
+            return JsonResponse({
+                'status': 'error',
+                'message': 'At least one name must be provided'
+            }, status=400)
+        
+        parent_id = data.get('parent_id')
+        
+        # Handle root node creation
+        if parent_id is None:
+            # Create root node
+            new_node = NodeTree.objects.create(
+                lft=1,
+                rgt=2,
+                children_count=0
+            )
+        else:
+            # Create child node
+            try:
+                parent_node = NodeTree.objects.get(id=parent_id)
+            except NodeTree.DoesNotExist:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': f'Parent node with ID {parent_id} not found'
+                }, status=404)
+            
+            # Update parent's children count
+            parent_node.children_count += 1
+            parent_node.save()
+            
+            # Create new node with Nested Set Model logic
+            new_node = NodeTree.objects.create(
+                lft=parent_node.rgt,
+                rgt=parent_node.rgt + 1,
+                children_count=0
+            )
+            
+            # Update all nodes that need to be shifted
+            NodeTree.objects.filter(rgt__gte=parent_node.rgt).update(rgt=F('rgt') + 2)
+            NodeTree.objects.filter(lft__gt=parent_node.rgt).update(lft=F('lft') + 2)
+            
+            # Update the new node's lft and rgt values
+            new_node.lft = parent_node.rgt
+            new_node.rgt = parent_node.rgt + 1
+            new_node.save()
+        
+        # Create names for the new node
+        created_names = []
+        for language, name in data['names'].items():
+            if name:  # Only create if name is not empty
+                try:
+                    name_obj = NodeTreeNames.objects.create(
+                        nodeTree=new_node,
+                        language=language,
+                        nodeName=name
+                    )
+                    created_names.append({
+                        'language': language,
+                        'name': name
+                    })
+                except Exception as e:
+                    # If there's an error creating names, delete the node
+                    new_node.delete()
+                    return JsonResponse({
+                        'status': 'error',
+                        'message': f'Error creating name for language {language}'
+                    }, status=400)
+        
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Node created successfully',
+            'data': {
+                'node_id': new_node.id,
+                'lft': new_node.lft,
+                'rgt': new_node.rgt,
+                'children_count': new_node.children_count,
+                'is_leaf': new_node.is_leaf,
+                'depth': new_node.depth,
+                'names': created_names
+            }
+        }, status=201)
+        
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Internal server error'
+        }, status=500)
