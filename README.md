@@ -31,7 +31,7 @@ Django REST API for managing hierarchical node structures using the Nested Set M
 
 1. **Clone the repository**
 ```bash
-git clone <repository-url>
+git clone https://github.com/cauecbb/Challenge-Hotiday.git
 cd Challenge-Hotiday/challenge_hotiday
 ```
 
