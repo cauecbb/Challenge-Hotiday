@@ -1,14 +1,15 @@
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpRequest
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.core.paginator import Paginator
 from django.db.models import F
 from .models import NodeTree, NodeTreeNames
+from typing import Dict, Any, List
 import json
 
 
 @require_http_methods(["GET"])
-def list_all_nodes(request):
+def list_all_nodes(request: HttpRequest) -> JsonResponse:
     """
     List all nodes in the tree (with pagination and language).
     
@@ -18,15 +19,15 @@ def list_all_nodes(request):
     - language: Language code for node names (default: 'en')
     """
     try:
-        page_num = int(request.GET.get('page_num', 0))
-        page_size = min(int(request.GET.get('page_size', 5)), 1000)
-        language = request.GET.get('language', 'en')
+        page_num: int = int(request.GET.get('page_num', 0))
+        page_size: int = min(int(request.GET.get('page_size', 5)), 1000)
+        language: str = request.GET.get('language', 'en')
         
         # Get all nodes in the specified language
         nodes = NodeTree.objects.select_related().prefetch_related('names')
         
         # Prepare data for response
-        nodes_data = []
+        nodes_data: List[Dict[str, Any]] = []
         for node in nodes:
             # Get node name in specified language
             try:
@@ -82,7 +83,7 @@ def list_all_nodes(request):
 
 
 @require_http_methods(["GET"])
-def get_node(request, node_id):
+def get_node(request: HttpRequest, node_id: int) -> JsonResponse:
     """
     Get a specific node by id.
     
@@ -91,7 +92,7 @@ def get_node(request, node_id):
     """
     try:
         # Get language parameter
-        language = request.GET.get('language', 'en')
+        language: str = request.GET.get('language', 'en')
         
         # Get the node
         try:
@@ -138,7 +139,7 @@ def get_node(request, node_id):
 
 
 @require_http_methods(["GET"])
-def search_children(request, node_id):
+def search_children(request: HttpRequest, node_id: int) -> JsonResponse:
     """
     Search for children of a specific node
     
@@ -149,9 +150,9 @@ def search_children(request, node_id):
     """
     try:
         # Get parameters
-        page_num = int(request.GET.get('page_num', 0))
-        page_size = min(int(request.GET.get('page_size', 5)), 1000)
-        language = request.GET.get('language', 'en')
+        page_num: int = int(request.GET.get('page_num', 0))
+        page_size: int = min(int(request.GET.get('page_size', 5)), 1000)
+        language: str = request.GET.get('language', 'en')
 
         # Get the parent node
         try:
@@ -169,7 +170,7 @@ def search_children(request, node_id):
         ).prefetch_related('names')
         
         # Filter to get only direct children (not descendants)
-        direct_children = []
+        direct_children: List[NodeTree] = []
         for child in children:
             # Check if this is a direct child by verifying no other node is between parent and child
             is_direct_child = True
@@ -182,7 +183,7 @@ def search_children(request, node_id):
                 direct_children.append(child)
         
         # Prepare children data
-        children_data = []
+        children_data: List[Dict[str, Any]] = []
         for child in direct_children:
             # Get child name in specified language
             try:
@@ -241,7 +242,7 @@ def search_children(request, node_id):
 
 @csrf_exempt
 @require_http_methods(["POST"])
-def create_node(request):
+def create_node(request: HttpRequest) -> JsonResponse:
     """
     Create a new node in the tree.
     
@@ -257,7 +258,7 @@ def create_node(request):
     try:
         # Parse JSON request body
         try:
-            data = json.loads(request.body.decode('utf-8'))
+            data: Dict[str, Any] = json.loads(request.body.decode('utf-8'))
         except json.JSONDecodeError:
             return JsonResponse({
                 'status': 'error',
@@ -284,7 +285,7 @@ def create_node(request):
                 'message': 'At least one name must be provided'
             }, status=400)
         
-        parent_id = data.get('parent_id')
+        parent_id: Optional[int] = data.get('parent_id')
         
         # Handle root node creation
         if parent_id is None:
@@ -325,7 +326,7 @@ def create_node(request):
             new_node.save()
         
         # Create names for the new node
-        created_names = []
+        created_names: List[Dict[str, str]] = []
         for language, name in data['names'].items():
             if name:  # Only create if name is not empty
                 try:
