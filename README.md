@@ -177,7 +177,7 @@ curl "http://localhost:8000/api/nodes/1/children/?language=it"
 ```
 
 #### 4. Create New Node
-**POST** `/api/nodes/`
+**POST** `/api/nodes/create/`
 
 **Body:**
 ```json
@@ -192,7 +192,7 @@ curl "http://localhost:8000/api/nodes/1/children/?language=it"
 
 **Example:**
 ```bash
-curl -X POST "http://localhost:8000/api/nodes/" \
+curl -X POST "http://localhost:8000/api/nodes/create/" \
   -H "Content-Type: application/json" \
   -d '{
     "parent_id": 1,
