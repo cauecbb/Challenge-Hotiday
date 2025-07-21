@@ -16,10 +16,12 @@ Django REST API for managing hierarchical node structures using the Nested Set M
 
 ## Technologies
 
+- Python 3.12+
 - Django 5.2.4
 - SQLite
 - Nested Set Model
 - Django REST
+- Type Hints (typing module)
 
 ## Installation
 
@@ -307,6 +309,7 @@ python manage.py shell
 - **Pagination**: Implemented for better performance
 - **Validation**: Input validation and error handling
 - **Transactions**: Database transactions for data consistency
+- **Type Hints**: Full type annotations for better code quality and IDE support
 
 ## License
 
