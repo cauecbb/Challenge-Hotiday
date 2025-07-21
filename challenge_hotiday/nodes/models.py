@@ -1,4 +1,5 @@
 from django.db import models
+from typing import Optional
 
 # Create your models here.
 
@@ -18,12 +19,12 @@ class NodeTree(models.Model):
         return f"Node {self.id} (lft: {self.lft}, rgt: {self.rgt})"
     
     @property
-    def is_leaf(self):
+    def is_leaf(self) -> bool:
         """Check if the node is a leaf (no children)"""
         return self.children_count == 0
     
     @property
-    def depth(self):
+    def depth(self) -> int:
         """Calculate the depth of the node in the tree"""
         return (self.rgt - self.lft - 1) // 2
 
@@ -51,7 +52,7 @@ class NodeTreeNames(models.Model):
         return f"{self.nodeName} ({self.language})"
     
     @classmethod
-    def get_node_name(cls, node_id, language='en'):
+    def get_node_name(cls, node_id: int, language: str = 'en') -> str:
         """
         Get the name of a node in the specified language ('en' or 'it')
         Falls back to English if the requested language is not available.
