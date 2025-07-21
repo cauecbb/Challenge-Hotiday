@@ -6,8 +6,8 @@ from typing import Optional
 
 class NodeTree(models.Model):
 
-    lft = models.IntegerField(help_text="Right value of the Nested Set  ")
-    rgt = models.IntegerField(help_text="Left value of the Nested Set")
+    lft = models.IntegerField(help_text="Left value of the Nested Set")
+    rgt = models.IntegerField(help_text="Right value of the Nested Set")
     children_count = models.IntegerField(default=0, help_text="Number of direct children")
     
     class Meta:
