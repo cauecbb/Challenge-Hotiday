@@ -194,9 +194,22 @@ curl "http://localhost:8000/api/nodes/1/children/?language=it"
 
 **Example:**
 ```bash
+# Linux/Mac
 curl -X POST "http://localhost:8000/api/nodes/create/" \
   -H "Content-Type: application/json" \
   -d '{
+    "parent_id": 1,
+    "names": {
+      "en": "New Department",
+      "it": "Nuovo Dipartimento"
+    }
+  }'
+
+# Windows PowerShell
+Invoke-RestMethod -Uri "http://localhost:8000/api/nodes/create/" \
+  -Method POST \
+  -Headers @{"Content-Type"="application/json"} \
+  -Body '{
     "parent_id": 1,
     "names": {
       "en": "New Department",
